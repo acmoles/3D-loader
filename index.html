@@ -11,6 +11,10 @@
 	</head>
 	<body>
 		<script type="module">
+			import { ThreeComposition } from './js/threeComposition.js'
+
+			var threeComposition = new ThreeComposition();
+
 			// Our Javascript will go here.
       import * as THREE from './node_modules/three/build/three.module.js';
       import { GLTFLoader } from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
@@ -23,20 +27,22 @@
 			// Global objects
 			//////////////////////////////
 			const camFactor = 32;
-			const ACTION_TIMEOUT = 3000;
-			const TRANSITION = 1;
 			var container = null; // Dom container
 			var stats = null;
 			var worldScene = null; // THREE.Scene where it all will be rendered
-			var gltfScene = null;
-			var animations = null;
 			var renderer = null;
 			var camera = null;
 			var clock = null;
 			var controls = null;
-			var animations = []; // Global animations object - pulles from loaded GLTF
 			var finishedLoading = false;
 			//////////////////////////////
+
+			//////////////////////////////
+			// 3D content related
+			//////////////////////////////
+			var gltfScene = null;
+			const TRANSITION = 1;
+			var animations = []; // Global animations object - pulles from loaded GLTF
 
 			const LOADPATH = './import-test-scene/characters-export4-test-uncompressed.glb';
 
