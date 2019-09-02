@@ -21,7 +21,7 @@ export class LoadedContent extends EventTarget {
         position: { x: -8.5, y: 0, z: 5 },
         rotation: { x: 0, y: 0.84 * Math.PI, z: 0 },
         startAction: 'idleStandard',
-        actionSequence: ['headNodYes', 'pointing', 'headNodYes'],
+        actionSequence: ['headNodYes', 'pointing'],
         actionSequenceProgress: 0,
         actions: {},
         mixer: null
@@ -31,7 +31,7 @@ export class LoadedContent extends EventTarget {
         position: { x: 3.5, y: 0, z: 10 },
         rotation: { x: 0, y: 1.16 * Math.PI, z: 0 },
         startAction: 'idleStandard',
-        actionSequence: ['pointing', 'headNodYes', 'headNodYes'],
+        actionSequence: ['pointing', 'headNodYes'],
         actionSequenceProgress: 0,
         actions: {},
         mixer: null
@@ -41,7 +41,7 @@ export class LoadedContent extends EventTarget {
         position: { x: 10, y: -0.33, z: 4 },
         rotation: { x: 0, y: 1.38 * Math.PI, z: 0 },
         startAction: 'idleStandard',
-        actionSequence: ['pointing', 'headNodYes', 'headNodYes'],
+        actionSequence: ['headNodYes', 'pointing'],
         actionSequenceProgress: 0,
         actions: {},
         mixer: null
@@ -156,7 +156,7 @@ export class LoadedContent extends EventTarget {
         setTimeout( () => {
           let firstAction = model.actions[ model.actionSequence[model.actionSequenceProgress] ];
           this.executeCrossFade( model.actions['idleStandard'], firstAction, this.TRANSITION );
-        }, (this.models.length - i) * anime.random( 1000, 4000 ) );
+        }, (this.models.length - i) * 2000 * Math.random() );
 
         model.mixer.addEventListener( 'loop', ( e ) => {
 
@@ -182,13 +182,13 @@ export class LoadedContent extends EventTarget {
             // console.log('end action: ', currentActionInSequence);
             // console.log('start action: ', nextAction.getClip().name);
 
-            // Crossfade out current step to idle
-            this.executeCrossFade( model.actions[currentActionInSequence], model.actions['idleStandard'], 1 );
+            // Crossfade out current step to idle if not idle
+            this.executeCrossFade( model.actions[currentActionInSequence], model.actions['idleStandard'], this.TRANSITION );
 
             // Start the next step in the sequence after a timeout
             setTimeout( () => {
               this.executeCrossFade( model.actions['idleStandard'], nextAction, this.TRANSITION );
-            }, 500 * anime.random( 6, 16 ) );
+            }, (this.models.length - i) * 1000 * Math.random() );
 
           }
 
@@ -247,9 +247,9 @@ export class LoadedContent extends EventTarget {
   }
 
   executeCrossFade( startAction, endAction, duration ) {
-    this.setWeight( endAction, 1 );
-    endAction.time = 0;
-    startAction.crossFadeTo( endAction, duration, true );
+      this.setWeight( endAction, 1 );
+      endAction.time = 0;
+      startAction.crossFadeTo( endAction, duration, true );
   }
 
   positionModel( model ) {

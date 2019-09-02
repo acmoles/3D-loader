@@ -24,12 +24,14 @@ export class Interactions {
       // Snap to full screen position using scroll snap
       // document.addEventListener( 'keydown', onDocumentKeyDown, false );
       // document.addEventListener( 'keyup', onDocumentKeyUp, false );
+
+      // TODO not intersects until first mouse move
   }
 
   updateMouse( event ) {
     event.preventDefault();
-    this.mouse.x = ( event.clientX / this.container.clientWidth ) * 2 - 1;
-    this.mouse.y = - ( event.clientY / this.container.clientHeight ) * 2 + 1;
+    this.mouse.x = ( event.clientX / this.container.offsetWidth ) * 2 - 1;
+    this.mouse.y = - ( event.clientY / this.container.offsetHeight ) * 2 + 1;
   }
 
   onClick( event ) {
