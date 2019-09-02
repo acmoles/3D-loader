@@ -21,7 +21,7 @@ export class LoadedContent extends EventTarget {
         position: { x: -8.5, y: 0, z: 5 },
         rotation: { x: 0, y: 0.84 * Math.PI, z: 0 },
         startAction: 'idleStandard',
-        actionSequence: ['headNodYes', 'pointing'],
+        actionSequence: ['headNodYes', 'pointing', 'headNodYes'],
         actionSequenceProgress: 0,
         actions: {},
         mixer: null
@@ -31,7 +31,7 @@ export class LoadedContent extends EventTarget {
         position: { x: 3.5, y: 0, z: 10 },
         rotation: { x: 0, y: 1.16 * Math.PI, z: 0 },
         startAction: 'idleStandard',
-        actionSequence: ['pointing', 'headNodYes'],
+        actionSequence: ['pointing', 'headNodYes', 'headNodYes'],
         actionSequenceProgress: 0,
         actions: {},
         mixer: null
@@ -41,7 +41,7 @@ export class LoadedContent extends EventTarget {
         position: { x: 10, y: -0.33, z: 4 },
         rotation: { x: 0, y: 1.38 * Math.PI, z: 0 },
         startAction: 'idleStandard',
-        actionSequence: ['headNodYes', 'pointing'],
+        actionSequence: ['headNodYes', 'pointing', 'pointing'],
         actionSequenceProgress: 0,
         actions: {},
         mixer: null
@@ -188,7 +188,7 @@ export class LoadedContent extends EventTarget {
             // Start the next step in the sequence after a timeout
             setTimeout( () => {
               this.executeCrossFade( model.actions['idleStandard'], nextAction, this.TRANSITION );
-            }, (this.models.length - i) * 1000 * Math.random() );
+            }, Math.max(1500, 6000 * Math.random()) );
 
           }
 

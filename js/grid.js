@@ -43,7 +43,7 @@ export class Grid {
             var x = c * (this.SIZE + this.SPACING);
             var z = r * (this.SIZE + this.SPACING);
             var y = this.FINAL_GRID_POSITION;
-            var name = 'c' + c + 'r' + r;
+            var name = 'Grid c' + c + 'r' + r;
 
             var element = this.makeGridElement(x, y, z, this.SIZE, gridMaterial, name)
 
@@ -77,14 +77,14 @@ export class Grid {
     e.mesh.position.x = x
     e.mesh.position.y = y
     e.mesh.position.z = z
+    e.mesh.name = name;
+
 
     e.update = () => {
       e.mesh.position.y = e.y;
       e.mesh.scale.x = e.scaleX;
       e.mesh.scale.z = e.scaleZ;
     }
-
-    e.name = name;
 
     return e;
   }
@@ -120,6 +120,37 @@ export class Grid {
     setTimeout( () => {
       staggersAnimation.play();
     }, 500);
+  }
+
+  clickAnimation(element) {
+    this.gridElements.forEach( (gridElement, index) => {
+      if (element === gridElement.mesh) {
+        // console.log('found match', index);
+        // gridElement.mesh.y = this.FINAL_GRID_POSITION;
+        let elementsToAnimate = this.gridElements.slice(0);
+        elementsToAnimate.splice(index, 1);
+
+        anime({
+          targets: elementsToAnimate,
+          easing: 'easeInOutQuad',
+          keyframes: [
+             {
+               y: anime.stagger(-1, {grid: this.GRID, from: index}),
+               duration: 100
+             }, {
+               y: anime.stagger(1, {grid: this.GRID, from: index}),
+               duration: 225
+             }, {
+               y: anime.stagger(this.FINAL_GRID_POSITION, {grid: this.GRID, from: index}),
+               duration: 600,
+             }
+           ],
+          update: this.renderAnimation,
+          delay: anime.stagger(80, {grid: this.GRID, from: index})
+        })
+
+      }
+    } );
   }
 
   radialScaleGrid() {

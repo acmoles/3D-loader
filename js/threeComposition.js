@@ -6,7 +6,6 @@ import { EventTarget } from '../node_modules/event-target-shim/dist/event-target
 import { EffectComposer } from '../node_modules/three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from '../node_modules/three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from '../node_modules/three/examples/jsm/postprocessing/ShaderPass.js';
-import { CopyShader } from '../node_modules/three/examples/jsm/shaders/CopyShader.js';
 import { FXAAShader } from '../node_modules/three/examples/jsm/shaders/FXAAShader.js';
 
 import { Renderer } from './renderer.js'
@@ -25,7 +24,7 @@ export class ThreeComposition extends EventTarget {
     this.worldScene = new THREE.Scene();
     this.subScene = new THREE.Scene();
 
-    this.camFactor = 32;
+    this.camFactor = 38;
 
     this.camera = new THREE.OrthographicCamera();
     this.subCamera = new THREE.OrthographicCamera();
@@ -47,7 +46,8 @@ export class ThreeComposition extends EventTarget {
     this.interactions = new Interactions(
       this.camera,
       this.container,
-      this.content.interactables
+      this.content.interactables,
+      this.grid.gridElements
     );
 
     this.composer = new EffectComposer(this.renderer);
@@ -76,6 +76,10 @@ export class ThreeComposition extends EventTarget {
     });
     this.content.init();
     this.animate();
+
+    this.interactions.addEventListener('click', (e) => {
+      this.grid.clickAnimation(e.detail);
+    } );
   }
 
   animate() {
@@ -89,9 +93,6 @@ export class ThreeComposition extends EventTarget {
         this.content.models[ i ].mixer.update( mixerUpdateDelta );
       }
     }
-
-    this.interactions.checkForIntersect();
-
 
     // this.renderer.render( this.worldScene, this.camera );
     this.customPass.uniforms['seed'].value += mixerUpdateDelta;
