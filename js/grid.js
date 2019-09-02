@@ -15,15 +15,132 @@ export class Grid {
     this.GRID_ANIMATION_SPEED = 3000;
     this.SPACING = 1.5;
     this.gridElements = [];
-    this.gridContainer;
+    this.gridContainer = new THREE.Object3D();
     this.gridContainerWidth = ((this.col-1) * this.SIZE) + ((this.col-1) * this.SPACING);
 
     this.worldScene = worldScene;
-    this.loadedContent = loadedContent
+    this.loadedContent = loadedContent;
   }
 
   init() {
-    this.addGridText();
+    // this.addGridText();
+    this.makeGrid();
+    this.radialScaleGrid();
+    this.parentModelsToGrid();
+    // this.positionGridElements();
+    // this.animateGridIn();
+  }
+
+  makeGrid () {
+
+    var gridMaterial = new THREE.MeshBasicMaterial({
+      color: 0xE2EAF4
+    });
+
+    for (var c=0; c<this.col; c++) {
+        for (var r=0; r<this.row; r++) {
+
+            var x = c * (this.SIZE + this.SPACING);
+            var z = r * (this.SIZE + this.SPACING);
+            var y = this.FINAL_GRID_POSITION;
+            var name = 'c' + c + 'r' + r;
+
+            var element = this.makeGridElement(x, y, z, this.SIZE, gridMaterial, name)
+
+            this.gridElements.push(element);
+            this.gridContainer.add(element.mesh);
+            this.loadedContent.interactables.push(element.mesh);
+        }
+    }
+    this.gridContainer.rotation.y = 0.5 * Math.PI;
+
+    this.gridContainer.position.x = this.gridContainer.position.x - (this.gridContainerWidth/2);
+    this.gridContainer.position.z = this.gridContainer.position.z + (this.gridContainerWidth/2);
+    this.worldScene.add(this.gridContainer);
+
+    // console.log('length of elements: ', gridElements);
+    // console.log('intended length: ', numberOfElements);
+
+  }
+
+  makeGridElement(x, y, z, s, material, name) {
+    let e = {};
+
+    e.x = x
+    e.y = y
+    e.z = z
+
+    e.scaleX = 1;
+    e.scaleZ = 1;
+
+    e.mesh = new THREE.Mesh(new THREE.BoxGeometry(s,s/12,s), material);
+    e.mesh.position.x = x
+    e.mesh.position.y = y
+    e.mesh.position.z = z
+
+    e.update = () => {
+      e.mesh.position.y = e.y;
+      e.mesh.scale.x = e.scaleX;
+      e.mesh.scale.z = e.scaleZ;
+    }
+
+    e.name = name;
+
+    return e;
+  }
+
+  parentModelsToGrid() {
+    this.gridElements[19].mesh.attach(this.loadedContent.getModelByName('Whiteboard').mesh.parent);
+    this.gridElements[13].mesh.attach(this.loadedContent.getModelByName('Ant').mesh.parent);
+    this.gridElements[9].mesh.attach(this.loadedContent.getModelByName('ColF').mesh.parent);
+    this.gridElements[16].mesh.attach(this.loadedContent.getModelByName('ColM').mesh.parent);
+  }
+
+  positionGridElements() {
+    this.gridElements.forEach( (e) => {
+      e.y = this.INITIAL_GRID_POSITION;
+      e.update();
+    })
+  }
+
+  animateGridIn() {
+    // TODO delay until loaded
+    const staggersAnimation = anime.timeline({
+      targets: this.gridElements,
+      easing: 'spring(1, 100, 13, 0)',
+      autoplay: false
+    })
+    .add({
+      duration: this.gridAnimtionSpeed,
+      y: this.FINAL_GRID_POSITION,
+      update: this.renderAnimation,
+      delay: anime.stagger(100, {grid: this.GRID, from: 'first'})
+    });
+
+    setTimeout( () => {
+      staggersAnimation.play();
+    }, 500);
+  }
+
+  radialScaleGrid() {
+    let radialGroups = [
+      [14, 15, 20, 21],
+      [8, 9, 13, 16, 19, 22, 26, 27],
+      [2, 3, 7, 10, 12, 17, 18, 23, 25, 28, 32, 33],
+      [1, 4, 6, 11, 24, 29, 31, 34],
+      [0, 5, 30, 35]
+    ]
+
+    for (var i = 0; i < radialGroups.length; i++) {
+      for (var j = 0; j < radialGroups[i].length; j++) {
+        let e = this.gridElements[radialGroups[i][j]];
+        let scale = 1 - (i*0.1);
+        e.scaleX = scale;
+        e.scaleZ = scale;
+        e.update();
+      }
+    }
+
   }
 
   addGridText() {
@@ -65,6 +182,12 @@ export class Grid {
       this.worldScene.add(textContainer);
 
     } );
+  }
+
+  renderAnimation(anim) {
+    for (var i = 0; i < anim.animatables.length; i++) {
+      anim.animatables[i].target.update();
+    }
   }
 
 }

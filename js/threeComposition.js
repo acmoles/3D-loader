@@ -1,24 +1,26 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
 import { OrbitControls } from '../node_modules/three/examples/jsm/controls/OrbitControls.js';
+import Stats from '../node_modules/three/examples/jsm/libs/stats.module.js';
+import { EventTarget } from '../node_modules/event-target-shim/dist/event-target-shim.mjs';
 
 import { Renderer } from './renderer.js'
 import { LoadedContent } from './LoadedContent.js'
 import { Grid } from './grid.js'
 import { Interactions } from './interactions.js'
 
-export class ThreeComposition {
+export class ThreeComposition extends EventTarget {
 
   constructor(domParent) {
+    super();
+    this.renderer = new THREE.WebGLRenderer( { antialias: true } );
     this.worldScene = new THREE.Scene();
     this.camFactor = 32;
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    this.camera = new THREE.OrthographicCamera( width / - this.camFactor, width / this.camFactor, height / this.camFactor, height / - this.camFactor, 1, 1000 );
-    this.controls;
+    this.camera = new THREE.OrthographicCamera();
+    this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 
-    this.finishedLoading = false;
-
-    this.renderer = new Renderer(domParent, this.worldScene, this.camera);
+    this.container = domParent;
+    this.clock = new THREE.Clock();
+    this.stats = new Stats();
 
     this.content = new LoadedContent(this.worldScene);
 
@@ -29,19 +31,19 @@ export class ThreeComposition {
 
     this.interactions = new Interactions(
       this.camera,
-      domParent,
+      this.container,
       this.content.interactables
     );
 
-    this.makeScene();
+    this.configRenderer();
+    this.configScene();
   }
 
   init() {
-    this.renderer.init();
-    this.interactions.init();
     this.content.addEventListener('loaded', () => {
-      console.log('loaded');
       this.grid.init();
+      this.interactions.init();
+      this.dispatchEvent(new Event('comp-loaded'));
     });
     this.content.init();
     this.animate();
@@ -51,7 +53,7 @@ export class ThreeComposition {
     requestAnimationFrame( () => { this.animate(); } );
 
 
-    var mixerUpdateDelta = this.renderer.clock.getDelta();
+    var mixerUpdateDelta = this.clock.getDelta();
 
     for ( var i = 0; i < this.content.models.length; ++ i ) {
       if (this.content.models[ i ].mixer !== null) {
@@ -59,21 +61,29 @@ export class ThreeComposition {
       }
     }
 
-    // this.interactions.checkForIntersect();
+    this.interactions.checkForIntersect();
 
 
-    this.renderer.renderer.render( this.worldScene, this.camera );
-    this.renderer.stats.update();
+    this.renderer.render( this.worldScene, this.camera );
+    this.stats.update();
   }
 
-  makeScene() {
+  configRenderer() {
+    this.renderer.setPixelRatio( window.devicePixelRatio );
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.renderer.gammaOutput = true;
+    this.container.appendChild( this.renderer.domElement );
+
+    this.container.appendChild( this.stats.dom );
+  }
+
+  configScene() {
     this.camera.position.set( 33, 30, 33 );
-    this.worldScene.background = new THREE.Color( 0xFFFFFF )
+    this.controls.target.set( 0, 5.5, 0 );
+    this.worldScene.background = new THREE.Color( 0xFFFFFF );
+    this.onWindowResize();
     // var axesHelper = new THREE.AxesHelper( 5 );
     // worldScene.add( axesHelper );
-
-    this.controls = new OrbitControls( this.camera, this.renderer.renderer.domElement );
-    this.controls.target.set( 0, 5.5, 0 );
 
     // TODO add these to restrict user camera
     let maxAngle = (7 / 20) * Math.PI;
@@ -84,20 +94,20 @@ export class ThreeComposition {
 
     this.controls.update();
 
-    window.addEventListener( 'resize', this.onWindowResize, false );
+    window.addEventListener( 'resize', () => { this.onWindowResize(); }, false );
   }
 
   onWindowResize() {
     let width = window.innerWidth;
     let height = window.innerHeight;
 
-    this.renderer.renderer.setSize( width, height );
+    this.renderer.setSize( width, height );
 
     this.camera.left = width / - this.camFactor;
     this.camera.right = width / this.camFactor;
     this.camera.top = height / this.camFactor;
     this.camera.bottom = height / - this.camFactor;
 
-   this.camera.updateProjectionMatrix();
+    this.camera.updateProjectionMatrix();
   }
 }

@@ -18,6 +18,11 @@
 			document.body.appendChild( container );
 
 			var threeComposition = new ThreeComposition(container);
+
+			threeComposition.addEventListener('comp-loaded', () => {
+				console.log('loaded');
+			});
+
 			threeComposition.init();
 
 		</script>

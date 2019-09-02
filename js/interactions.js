@@ -3,20 +3,22 @@ import * as THREE from '../node_modules/three/build/three.module.js';
 export class Interactions {
 
   constructor(camera, container, interactables) {
-    this.mouse = new THREE.Vector2()
+    this.camera = camera;
+    this.container = container;
+    this.interactables = interactables;
+
+    this.mouse = new THREE.Vector2();
     this.intersected;
-    this.clickRadius = 500
+    this.clickRadius = 500;
     this.theta = 0;
     this.frustumSize = 1000;
     this.raycaster = new THREE.Raycaster();
-    this.container = container;
-    this.interactables = interactables;
   }
 
   init() {
-      this.container.addEventListener( 'mousemove', () => {this.updateMouse}, false );
-      this.container.addEventListener( 'mousedown', () => {this.onClick}, false );
-      this.container.addEventListener( 'touchstart', () => {this.onClick}, false );
+      this.container.addEventListener( 'mousemove', (e) => { this.updateMouse(e) }, false );
+      this.container.addEventListener( 'mousedown', (e) => { this.onClick(e) }, false );
+      this.container.addEventListener( 'touchstart', (e) => { this.onClick(e) }, false );
 
       // TODO mouse through pages using keyboard is nice
       // Snap to full screen position using scroll snap
@@ -26,8 +28,8 @@ export class Interactions {
 
   updateMouse( event ) {
     event.preventDefault();
-    this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    this.mouse.x = ( event.clientX / this.container.clientWidth ) * 2 - 1;
+    this.mouse.y = - ( event.clientY / this.container.clientHeight ) * 2 + 1;
   }
 
   onClick( event ) {
@@ -39,14 +41,14 @@ export class Interactions {
     });
   }
 
-  checkForIntersect(callback) {
+  checkForIntersect( callback ) {
       // TODO fix camera type error
       this.raycaster.setFromCamera( this.mouse, this.camera );
       var intersects = this.raycaster.intersectObjects( this.interactables );
 
       if ( intersects.length > 0 ) {
 
-        if (callback) {
+        if ( callback ) {
           // click animation
           callback(intersects[ 0 ].object);
           return
