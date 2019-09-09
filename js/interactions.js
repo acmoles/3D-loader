@@ -18,14 +18,28 @@ export class Interactions extends EventTarget {
     this.theta = 0;
     this.frustumSize = 1000;
     this.raycaster = new THREE.Raycaster();
+
+    this.hasEvents = true;
+    this.hoverOns = [];
+    this.hoverOffs = [];
   }
 
   init() {
-      this.container.addEventListener( 'mousemove', (e) => { this.updateMouse(e) }, false );
-      this.container.addEventListener( 'mousedown', (e) => { this.onClick(e) }, false );
-      this.container.addEventListener( 'touchstart', (e) => { this.onClick(e) }, false );
-
       this.NOMINAL_GRID_Y = this.gridElements[0].y;
+      this.HOVER_Y = this.NOMINAL_GRID_Y + 0.25;
+
+      this.container.addEventListener( 'mousemove', this.updateMouse.bind(this), false );
+      this.container.addEventListener( 'mousedown', this.onClick.bind(this), false );
+      this.container.addEventListener( 'touchstart', this.onClick.bind(this), false );
+
+      updateOnScroll(0, (window.innerHeight / 1.5), progress => {
+       this.dispatchEvent( new CustomEvent('scroll', { detail: progress }) );
+       if (this.hasEvents && progress > 0) {
+         this.stopEvents();
+       } else if (!this.hasEvents && progress === 0) {
+         this.allowEvents();
+       }
+      });
 
       // TODO mouse through pages using keyboard is nice
       // Snap to full screen position using scroll snap
@@ -33,24 +47,39 @@ export class Interactions extends EventTarget {
       // document.addEventListener( 'keyup', onDocumentKeyUp, false );
   }
 
+  allowEvents() {
+    this.hasEvents = true;
+  }
+
+  stopEvents() {
+    this.hasEvents = false;
+    this.dispatchEvent(new Event('pause-external'));
+    if (this.hoverOns[0]) { this.hoverOns.forEach( (h) => { h.pause(); } ); this.hoverOns = []; }
+    if (this.hoverOffs[0]) { this.hoverOffs.forEach( (h) => { h.pause(); } ); this.hoverOffs = []; }
+  }
+
   updateMouse( event ) {
     event.preventDefault();
     this.mouse.x = ( event.clientX / this.container.offsetWidth ) * 2 - 1;
     this.mouse.y = - ( event.clientY / this.container.offsetHeight ) * 2 + 1;
-    this.checkForIntersect();
+    if (this.hasEvents) {
+      this.checkForIntersect();
+    }
   }
 
   onClick( event ) {
     event.preventDefault();
 
-    this.checkForIntersect((gridElement) => {
-      // Click hover animation
-      this.dispatchEvent(new CustomEvent('click', { detail: this.findParentGridElement(gridElement, 'Grid') }));
-    });
+    if (this.hasEvents) {
+      this.checkForIntersect((gridElement) => {
+        // Click animation
+        this.intersected = null;
+        this.dispatchEvent(new CustomEvent('click', { detail: this.findParentGridElement(gridElement, 'Grid') }));
+      });
+    }
   }
 
   checkForIntersect( callback ) {
-      // TODO fix camera type error
       this.raycaster.setFromCamera( this.mouse, this.camera );
       var intersects = this.raycaster.intersectObjects( this.interactables );
 
@@ -67,6 +96,7 @@ export class Interactions extends EventTarget {
           // Hoveron
           this.container.style.cursor = 'pointer';
           if ( this.intersected !== null ) {
+            // Hover switch
             this.unhoverAnimation(this.intersected);
           }
           this.intersected = object;
@@ -86,39 +116,52 @@ export class Interactions extends EventTarget {
   }
 
   hoverAnimation(gridElement) {
-    // console.log('Hover: ', gridElement);
+    if (this.hasEvents) {
 
-    anime({
-      targets: gridElement.position,
-      y: this.NOMINAL_GRID_Y + 1,
-      easing: 'spring(1, 80, 10, 0)',
-    });
+      this.hoverOnInternal(gridElement.position);
 
-    if (gridElement.name === 'Grid c3r1') {
-      anime({
-        targets: this.gridElements[22].mesh.position,
-        y: this.NOMINAL_GRID_Y + 1,
-        easing: 'spring(1, 80, 10, 0)',
-      });
+      // if (gridElement.name === 'Grid c3r1') {
+      //   this.hoverOnInternal(this.gridElements[22].mesh.position);
+      // } else if (gridElement.name === 'Grid c3r4') {
+      //   this.hoverOnInternal(this.gridElements[19].mesh.position);
+      // }
+
     }
   }
 
+  hoverOnInternal(target) {
+    target.y = this.NOMINAL_GRID_Y;
+    this.hoverOns.push(anime({
+      targets: target,
+      y: this.HOVER_Y,
+      easing: 'spring(1, 100, 10, 10)',
+      duration: 200,
+      complete: () => { this.hoverOns = []; }
+    }));
+  }
+
   unhoverAnimation(gridElement) {
-    // console.log('Unhover: ', gridElement);
+    if (this.hasEvents) {
 
-    anime({
-      targets: gridElement.position,
-      y: this.NOMINAL_GRID_Y,
-      easing: 'spring(1, 80, 10, 0)',
-    });
+      this.unhoverInternal(gridElement.position);
 
-    if (gridElement.name === 'Grid c3r1') {
-      anime({
-        targets: this.gridElements[22].mesh.position,
-        y: this.NOMINAL_GRID_Y,
-        easing: 'spring(1, 80, 10, 0)',
-      });
+      // if (gridElement.name === 'Grid c3r1') {
+      //   this.unhoverInternal(this.gridElements[22].mesh.position);
+      // } else if (gridElement.name === 'Grid c3r4') {
+      //   this.unhoverInternal(this.gridElements[19].mesh.position);
+      // }
+
     }
+  }
+
+  unhoverInternal(target) {
+    this.hoverOffs.push(anime({
+      targets: target,
+      y: this.NOMINAL_GRID_Y,
+      easing: 'spring(1, 100, 10, 0)',
+      duration: 800,
+      complete: () => { this.hoverOffs = []; }
+    }));
   }
 
   findParentGridElement(element, type) {

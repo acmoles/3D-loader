@@ -20,6 +20,9 @@ export class ThreeComposition extends EventTarget {
     super();
     this.renderer = new THREE.WebGLRenderer();
     this.subRenderer = new THREE.WebGLRenderer();
+    // Custom framerate for noise
+    this.now; this.delta; this.fixedDelta; this.then = Date.now();
+    this.interval = 1000/20;
 
     this.worldScene = new THREE.Scene();
     this.subScene = new THREE.Scene();
@@ -70,38 +73,54 @@ export class ThreeComposition extends EventTarget {
 
   init() {
     this.content.addEventListener('loaded', () => {
-      this.grid.init();
-      this.interactions.init();
-      this.dispatchEvent(new Event('comp-loaded'));
+      this.postLoad();
     });
     this.content.init();
     this.animate();
+  }
+
+  postLoad() {
+    this.grid.init();
+    this.interactions.init();
+    this.dispatchEvent(new Event('comp-loaded'));
 
     this.interactions.addEventListener('click', (e) => {
-      this.grid.clickAnimation(e.detail);
+      this.grid.click(e.detail);
+    } );
+
+    this.interactions.addEventListener('scroll', (e) => {
+      this.grid.scroll(e.detail);
+      this.content.scroll(e.detail);
+    } );
+
+    this.interactions.addEventListener('pause-external', (e) => {
+      this.grid.pause();
     } );
   }
 
   animate() {
     requestAnimationFrame( () => { this.animate(); } );
-
-
-    var mixerUpdateDelta = this.clock.getDelta();
+    this.now = Date.now();
+    this.fixedDelta = this.now - this.then;
+    this.delta = this.clock.getDelta();
 
     for ( var i = 0; i < this.content.models.length; ++ i ) {
       if (this.content.models[ i ].mixer !== null) {
-        this.content.models[ i ].mixer.update( mixerUpdateDelta );
+        this.content.models[ i ].mixer.update( this.delta );
       }
     }
 
     // this.renderer.render( this.worldScene, this.camera );
-    this.customPass.uniforms['seed'].value += mixerUpdateDelta;
-    this.customPass.uniforms['amount'].value = 0.13;
+    this.customPass.uniforms['seed'].value += this.delta;
+    this.customPass.uniforms['amount'].value = 0.14;
     this.composer.render();
-    this.customPass.uniforms['amount'].value = 0.5;
-    this.composer2.render();
 
-    this.drawToSharedCanvases();
+    if (this.fixedDelta > this.interval) {
+      this.customPass.uniforms['amount'].value = 0.6;
+      this.composer2.render();
+      this.drawToSharedCanvases();
+      this.then = this.now - (this.fixedDelta % this.interval);
+    }
 
     this.stats.update();
   }
@@ -181,5 +200,17 @@ export class ThreeComposition extends EventTarget {
     this.camera.bottom = height / - this.camFactor;
 
     this.camera.updateProjectionMatrix();
+  }
+
+  toggleBackground() {
+    if ( this.worldScene.background.r === 1 ) {
+      console.log('toggle');
+      this.worldScene.background = new THREE.Color( 0x273444 );
+      this.grid.gridMaterial.color = new THREE.Color( 0x1F2D3D );
+    } else {
+      this.worldScene.background = new THREE.Color( 0xFFFFFF );
+      this.grid.gridMaterial.color = new THREE.Color( 0xC0CCDA );
+    }
+
   }
 }

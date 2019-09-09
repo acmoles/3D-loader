@@ -18,6 +18,9 @@ export class Grid {
     this.gridContainer = new THREE.Object3D();
     this.gridContainerWidth = ((this.col-1) * this.SIZE) + ((this.col-1) * this.SPACING);
 
+    this.scrollAnimation;
+    this.clickAnimation;
+
     this.worldScene = worldScene;
     this.loadedContent = loadedContent;
   }
@@ -27,13 +30,14 @@ export class Grid {
     this.makeGrid();
     this.radialScaleGrid();
     this.parentModelsToGrid();
+    this.initScrollAnimation();
     // this.positionGridElements();
     // this.animateGridIn();
   }
 
   makeGrid () {
 
-    var gridMaterial = new THREE.MeshBasicMaterial({
+    this.gridMaterial = new THREE.MeshBasicMaterial({
       color: 0xC0CCDA
     });
 
@@ -45,7 +49,7 @@ export class Grid {
             var y = this.FINAL_GRID_POSITION;
             var name = 'Grid c' + c + 'r' + r;
 
-            var element = this.makeGridElement(x, y, z, this.SIZE, gridMaterial, name)
+            var element = this.makeGridElement(x, y, z, this.SIZE, this.gridMaterial, name)
 
             this.gridElements.push(element);
             this.gridContainer.add(element.mesh);
@@ -90,7 +94,8 @@ export class Grid {
   }
 
   parentModelsToGrid() {
-    this.gridElements[19].mesh.attach(this.loadedContent.getModelByName('Whiteboard').mesh.parent);
+    this.gridElements[19].mesh.attach(this.loadedContent.getModelByName('Whiteboard').mesh);
+    this.gridElements[22].mesh.attach(this.loadedContent.getModelByName('Leg').mesh);
     this.gridElements[13].mesh.attach(this.loadedContent.getModelByName('Ant').mesh.parent);
     this.gridElements[9].mesh.attach(this.loadedContent.getModelByName('ColF').mesh.parent);
     this.gridElements[16].mesh.attach(this.loadedContent.getModelByName('ColM').mesh.parent);
@@ -122,24 +127,55 @@ export class Grid {
     }, 500);
   }
 
-  clickAnimation(element) {
+  initScrollAnimation() {
+    this.scrollAnimation = anime({
+      targets: this.gridElements,
+      easing: 'easeInOutQuad',
+      y: () => anime.random(-10, 10),
+      delay: anime.stagger(8, {grid: this.GRID, from: 'last'}),
+      update: this.renderAnimation,
+      autoplay: false
+    });
+  }
+
+  scroll(progress) {
+    this.scrollAnimation.seek(this.scrollAnimation.duration * progress);
+  }
+
+  pause() {
+    if (this.clickAnimation) {
+      this.clickAnimation.pause();
+      this.clickAnimation.reset();
+      this.clickAnimation = null;
+    }
+  }
+
+  click(element) {
     this.gridElements.forEach( (gridElement, index) => {
       if (element === gridElement.mesh) {
-        // console.log('found match', index);
-        // gridElement.mesh.y = this.FINAL_GRID_POSITION;
         let elementsToAnimate = this.gridElements.slice(0);
-        elementsToAnimate.splice(index, 1);
+        elementsToAnimate[index] = {update: () => {}};
 
-        anime({
+        if (index !== 19 && index !== 13 && index !== 16 && index !== 9 && index !== 22) {
+          this.gridElements[index].mesh.scale.x -= 0.1;
+          this.gridElements[index].mesh.scale.z -= 0.1;
+          setTimeout( () => {
+            this.gridElements[index].mesh.scale.x += 0.1;
+            this.gridElements[index].mesh.scale.z += 0.1;
+          }, 100 )
+        }
+
+        // Other elements
+        this.clickAnimation = anime({
           targets: elementsToAnimate,
           easing: 'easeInOutQuad',
           keyframes: [
              {
-               y: anime.stagger(-1, {grid: this.GRID, from: index}),
-               duration: 100
+               y: anime.stagger(-0.5, {grid: this.GRID, from: index}),
+               duration: 150
              }, {
-               y: anime.stagger(1, {grid: this.GRID, from: index}),
-               duration: 225
+               y: anime.stagger(0.75, {grid: this.GRID, from: index}),
+               duration: 300
              }, {
                y: anime.stagger(this.FINAL_GRID_POSITION, {grid: this.GRID, from: index}),
                duration: 600,
@@ -147,7 +183,7 @@ export class Grid {
            ],
           update: this.renderAnimation,
           delay: anime.stagger(80, {grid: this.GRID, from: index})
-        })
+        });
 
       }
     } );

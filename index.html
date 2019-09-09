@@ -7,9 +7,6 @@
 		<style>
 			body { margin: 0; }
 			canvas { width: 100%; height: 100% }
-			#sub {
-				display: none;
-			}
 			.sub {
 				position: absolute;
 				top: 30px;
@@ -19,27 +16,53 @@
 				background: #1FB6FF;
 				border-radius: 3px;
 				overflow: hidden;
-				display: none;
+				display: block;
+			}
+			#sub {
+				left: 30px;
+				background: #FF16D1;
 			}
 			.sub canvas {
 				mix-blend-mode: overlay;
 				opacity: 0;
 				opacity: 0.65;
 			}
+
+			.presentation, .content {
+				height: 100vh;
+				position: relative;
+			}
+
+			.content {
+				background-color: #F9FAFC;
+			}
+
+
 		</style>
 	</head>
 	<body>
+
+		<div class="presentation">
+
+		</div>
+		<div class="content">
+
+		</div>
+
 		<script type="module">
 			import { ThreeComposition } from './js/threeComposition.js'
 
+			const presentation = document.getElementsByClassName('presentation')[0];
+			const content = document.getElementsByClassName('content')[0];
+
 			var container = document.createElement( 'div' );
 			container.id = 'container';
-			document.body.appendChild( container );
+			presentation.appendChild( container );
 
 			var masterSubContainer = document.createElement( 'div' );
 			masterSubContainer.id = 'sub';
 			masterSubContainer.setAttribute('class', 'sub');
-			document.body.appendChild( masterSubContainer );
+			content.appendChild( masterSubContainer );
 
 
 			var threeComposition = new ThreeComposition(container, masterSubContainer);
@@ -56,16 +79,13 @@
 					let subContainer = document.createElement( 'div' );
 					subContainer.setAttribute('class', 'sub');
 					subContainer.appendChild( canvasObject.canvas );
-					document.body.appendChild( subContainer );
+					content.appendChild( subContainer );
 				} );
 			}
 
-			function arrangeSubsAlt (subs) {
-				let subContainer = document.createElement( 'div' );
-				subContainer.setAttribute('class', 'sub');
-				subContainer.appendChild( subs[0].canvas );
-				document.body.appendChild( subContainer );
-			}
+			masterSubContainer.addEventListener( 'mousedown', () => {
+				threeComposition.toggleBackground();
+			}, false );
 
 		</script>
 	</body>

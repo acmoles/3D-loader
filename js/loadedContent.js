@@ -18,37 +18,47 @@ export class LoadedContent extends EventTarget {
     this.models = [
       { name: 'Ant',
         mesh: null,
-        position: { x: -8.5, y: 0, z: 5 },
+        position: { x: -8.5, y: 0, z: 4.2 },
         rotation: { x: 0, y: 0.84 * Math.PI, z: 0 },
         startAction: 'idleStandard',
         actionSequence: ['headNodYes', 'pointing', 'headNodYes'],
         actionSequenceProgress: 0,
         actions: {},
-        mixer: null
+        mixer: null,
+        timeout: null
       },
       { name: 'ColF',
         mesh: null,
-        position: { x: 3.5, y: 0, z: 10 },
+        position: { x: 3.5, y: 0, z: 9 },
         rotation: { x: 0, y: 1.16 * Math.PI, z: 0 },
         startAction: 'idleStandard',
         actionSequence: ['pointing', 'headNodYes', 'headNodYes'],
         actionSequenceProgress: 0,
         actions: {},
-        mixer: null
+        mixer: null,
+        timeout: null
       },
       { name: 'ColM',
         mesh: null,
-        position: { x: 10, y: -0.33, z: 4 },
+        position: { x: 10, y: -0.33, z: 3.2 },
         rotation: { x: 0, y: 1.38 * Math.PI, z: 0 },
         startAction: 'idleStandard',
         actionSequence: ['headNodYes', 'pointing', 'pointing'],
         actionSequenceProgress: 0,
         actions: {},
-        mixer: null
+        mixer: null,
+        timeout: null
       },
       { name: 'Whiteboard',
         mesh: null,
-        position: { x: 0, y: - 0.05, z: - 0.9 },
+        position: { x: 0, y: - 0.05, z: - 0.8 },
+        rotation: null,
+        actionSequence: [null],
+        mixer: null
+      },
+      { name: 'Leg',
+        mesh: null,
+        position: { x: 0, y: - 0.05, z: - 0.8 },
         rotation: null,
         actionSequence: [null],
         mixer: null
@@ -73,7 +83,10 @@ export class LoadedContent extends EventTarget {
 
           if (child.name === 'Whiteboard') {
             this.equipMesh( this.getModelByName('Whiteboard'), child );
-            child.scale.z = 0.95;
+          }
+
+          if (child.name === 'Leg') {
+            this.equipMesh( this.getModelByName('Leg'), child );
           }
 
           if (child.name === 'AntMesh') {
@@ -143,8 +156,37 @@ export class LoadedContent extends EventTarget {
     return mixer;
   }
 
-  doLookdown() {
-    // TODO crossfade to lookdown on click, stop action sequence, animate tile downwards
+  tanh(x) {
+    var a = Math.exp(+x), b = Math.exp(-x);
+    return a == Infinity ? 1 : b == Infinity ? -1 : (a - b) / (a + b);
+  }
+
+  scroll(progress) {
+    if (progress > 0) {
+
+      this.models.forEach((model, i) => {
+        if (model.mixer !== null) {
+          clearTimeout(model.timeout);
+          let currentActionName = model.actionSequence[model.actionSequenceProgress];
+          this.setWeight( model.actions['floating'], this.tanh(3*progress) );
+          this.setWeight( model.actions[currentActionName], 1 - this.tanh(3*progress) );
+        }
+      });
+
+    } else {
+      this.models.forEach((model, i) => {
+        if (model.mixer !== null) {
+          let postScrollTransition = 0.5;
+          model.actions['floating'].fadeOut(postScrollTransition);
+          clearTimeout(model.timeout);
+          let currentActionName = model.actionSequence[model.actionSequenceProgress];
+          this.executeCrossFade(model.actions[currentActionName], model.actions['idleStandard'], postScrollTransition);
+          this.catalystAction(model, i);
+        }
+      });
+
+    }
+
   }
 
   startAnimationSequence() {
@@ -152,51 +194,60 @@ export class LoadedContent extends EventTarget {
     this.models.forEach((model, i) => {
       if (model.mixer !== null) {
 
-        // setTimout till first action in sequence
-        setTimeout( () => {
-          let firstAction = model.actions[ model.actionSequence[model.actionSequenceProgress] ];
-          this.executeCrossFade( model.actions['idleStandard'], firstAction, this.TRANSITION );
-        }, (this.models.length - i) * 2000 * Math.random() );
+        this.catalystAction(model, i)
 
-        model.mixer.addEventListener( 'loop', ( e ) => {
-
-          let clipName = e.action.getClip().name;
-          let currentActionInSequence = model.actionSequence[model.actionSequenceProgress];
-          // IF the action that just looped is the current in the sequence and is weighted on
-          if (clipName === currentActionInSequence && e.action.weight === 1) {
-            // THEN a step in the sequence just finished
-
-            // Increment sequence position
-            model.actionSequenceProgress++
-
-            // Check if we're at the end and reset if so
-            if (model.actionSequenceProgress > model.actionSequence.length - 1) {
-              // console.log('repeat sequence: ', model.name);
-              model.actionSequenceProgress = 0;
-            }
-
-            let nextAction = model.actions[ model.actionSequence[model.actionSequenceProgress] ];
-
-            // console.log('model: ', model.name);
-            // console.log('position in sequence: ', model.actionSequenceProgress);
-            // console.log('end action: ', currentActionInSequence);
-            // console.log('start action: ', nextAction.getClip().name);
-
-            // Crossfade out current step to idle if not idle
-            this.executeCrossFade( model.actions[currentActionInSequence], model.actions['idleStandard'], this.TRANSITION );
-
-            // Start the next step in the sequence after a timeout
-            setTimeout( () => {
-              this.executeCrossFade( model.actions['idleStandard'], nextAction, this.TRANSITION );
-            }, Math.max(1500, 6000 * Math.random()) );
-
-          }
-
-
-        } );
+        model.mixer.addEventListener( 'loop', ( e ) => { this.animationLoop(e, model, i); } );
 
       }
     });
+  }
+
+  catalystAction(model, i) {
+
+    let firstAction = model.actions[ model.actionSequence[model.actionSequenceProgress] ];
+
+    // setTimout till first action in sequence
+    model.timeout = setTimeout( () => {
+      this.executeCrossFade( model.actions['idleStandard'], firstAction, this.TRANSITION );
+    }, (this.models.length - i) * 2000 * Math.random() );
+
+  }
+
+  animationLoop(e, model, i) {
+      let clipName = e.action.getClip().name;
+      let currentActionName = model.actionSequence[model.actionSequenceProgress];
+      // IF the action that just looped is the current in the sequence and is weighted on
+      if (clipName === currentActionName && e.action.weight === 1) {
+        // THEN a step in the sequence just finished
+
+        this.incrementSequence(model);
+
+        let nextAction = model.actions[ model.actionSequence[model.actionSequenceProgress] ];
+
+        this.advanceInSequence( model, model.actions[currentActionName], model.actions['idleStandard'], nextAction, i);
+      }
+  }
+
+  incrementSequence(model) {
+    // Increment sequence position
+    model.actionSequenceProgress++
+
+    // Check if we're at the end and reset if so
+    if (model.actionSequenceProgress > model.actionSequence.length - 1) {
+      // console.log('repeat sequence: ', model.name);
+      model.actionSequenceProgress = 0;
+    }
+  }
+
+  advanceInSequence(model, currentAction, idleAction, nextAction, i) {
+    // Crossfade out current step to idle if not idle
+    this.executeCrossFade( currentAction, idleAction, this.TRANSITION );
+
+    // Start the next step in the sequence after a timeout
+    model.timeout = setTimeout( () => {
+      this.executeCrossFade( idleAction, nextAction, this.TRANSITION );
+    }, Math.max(1500, 6000 * Math.random()) + (i * 100) );
+
   }
 
   loadGLTF(callback) {
@@ -253,10 +304,10 @@ export class LoadedContent extends EventTarget {
   }
 
   positionModel( model ) {
-    let parent = model.mesh.parent;
-    parent.position.x = model.position.x;
-    parent.position.y = model.position.y;
-    parent.position.z = model.position.z;
+    let locator = model.mesh.parent.name === 'Scene' ? model.mesh : model.mesh.parent;
+    locator.position.x = model.position.x;
+    locator.position.y = model.position.y;
+    locator.position.z = model.position.z;
   }
 
   rotateModel( model ) {

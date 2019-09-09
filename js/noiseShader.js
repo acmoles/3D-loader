@@ -4,7 +4,7 @@ var NoiseShader = {
 
     "tDiffuse": { value: null },
     "seed": { value: 0.01 },
-    "amount": { value: 0.13 }
+    "amount": { value: 0.14 }
 
 	},
 
