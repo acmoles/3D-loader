@@ -40,11 +40,6 @@ export class Interactions extends EventTarget {
          this.allowEvents();
        }
       });
-
-      // TODO mouse through pages using keyboard is nice
-      // Snap to full screen position using scroll snap
-      // document.addEventListener( 'keydown', onDocumentKeyDown, false );
-      // document.addEventListener( 'keyup', onDocumentKeyUp, false );
   }
 
   allowEvents() {

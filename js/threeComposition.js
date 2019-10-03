@@ -206,7 +206,7 @@ export class ThreeComposition extends EventTarget {
     if ( this.worldScene.background.r === 1 ) {
       console.log('toggle');
       this.worldScene.background = new THREE.Color( 0x273444 );
-      this.grid.gridMaterial.color = new THREE.Color( 0x1F2D3D );
+      this.grid.gridMaterial.color = new THREE.Color( 0x0A1119 );
     } else {
       this.worldScene.background = new THREE.Color( 0xFFFFFF );
       this.grid.gridMaterial.color = new THREE.Color( 0xC0CCDA );

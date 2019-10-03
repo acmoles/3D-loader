@@ -168,8 +168,8 @@ export class LoadedContent extends EventTarget {
         if (model.mixer !== null) {
           clearTimeout(model.timeout);
           let currentActionName = model.actionSequence[model.actionSequenceProgress];
-          this.setWeight( model.actions['floating'], this.tanh(3*progress) );
-          this.setWeight( model.actions[currentActionName], 1 - this.tanh(3*progress) );
+          this.setWeight( model.actions['floating'], this.tanh(2.2*progress) );
+          this.setWeight( model.actions[currentActionName], 1 - this.tanh(2.2*progress) );
         }
       });
 

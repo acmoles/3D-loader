@@ -8,7 +8,6 @@ export class Grid {
     this.col = this.GRID[0];
     this.row  = this.GRID[1];
     this.GRID_SIZE = this.col * this.row ;
-    this.numberOfElements = this.col * this.row ; // TODO fix this duplicate
     this.SIZE = 4.5;
     this.FINAL_GRID_POSITION = -this.SIZE/21;
     this.INITIAL_GRID_POSITION = -window.innerHeight/10;
@@ -61,10 +60,6 @@ export class Grid {
     this.gridContainer.position.x = this.gridContainer.position.x - (this.gridContainerWidth/2);
     this.gridContainer.position.z = this.gridContainer.position.z + (this.gridContainerWidth/2);
     this.worldScene.add(this.gridContainer);
-
-    // console.log('length of elements: ', gridElements);
-    // console.log('intended length: ', numberOfElements);
-
   }
 
   makeGridElement(x, y, z, s, material, name) {
