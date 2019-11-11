@@ -37,7 +37,9 @@ export class Grid {
   makeGrid () {
 
     this.gridMaterial = new THREE.MeshBasicMaterial({
-      color: 0xC0CCDA
+      // color: 0xC0CCDA
+      // color: 0x0B1421
+      color: 0x060B13
     });
 
     for (var c=0; c<this.col; c++) {
