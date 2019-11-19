@@ -4,6 +4,7 @@
 		<meta charset=utf-8>
     <meta content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" name="viewport">
 		<title>Object load test</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
 		<style>
 			body { margin: 0; scroll-behavior: smooth; scroll-snap-type: y proximity; }
 			canvas { width: 100%; height: 100%; position: relative;}
@@ -22,6 +23,26 @@
 				background-color: #F9FAFC;
 			}
 
+			.content .hero-text {
+				display: block;
+				position: relative;
+				top: 50%;
+				font-size: 8em;
+		    font-weight: bold;
+				font-family: GT Walsheim Pro Trial;
+		    text-align: center;
+			}
+
+			#hand-container {
+				cursor: pointer;
+				position: relative;
+				bottom: 10px;
+				transform-origin: 29px 82px;
+				display: inline-block;
+				vertical-align: middle;
+				transform: translateX(-32px) rotateZ(-360deg);
+			}
+
 		</style>
 	</head>
 	<body>
@@ -30,19 +51,35 @@
 
 		</div>
 		<div class="content">
+			<h1 class="hero-text">Hello
+				<span>
+					<svg id="hand-container" height="100" viewBox="0 0 100 100" width="100" xmlns="http://www.w3.org/2000/svg">
+						<path
+							id="hand-path"
+							d="M 29 94 C 22.373 94 17 88.627 17 82 C 17 80.895 17.149 79.826 17.429 78.81 C 17.708 77.794 18.118 76.832 18.638 75.943 C 19.159 75.054 19.791 74.239 20.515 73.515 C 21.239 72.791 22.054 72.159 22.943 71.638 C 23.832 71.118 24.794 70.708 25.81 70.429 C 26.826 70.149 27.895 70 29 70 C 29.288 70 29.574 70.01 29.857 70.03 C 30.14 70.05 30.42 70.08 30.698 70.119 C 30.975 70.158 31.249 70.207 31.52 70.265 C 31.791 70.323 32.059 70.39 32.322 70.466 C 32.586 70.542 32.846 70.626 33.102 70.719 C 33.358 70.813 33.61 70.914 33.857 71.024 C 34.105 71.133 34.348 71.251 34.586 71.377 C 34.825 71.502 35.058 71.636 35.287 71.777 C 35.515 71.918 35.739 72.066 35.957 72.221 C 36.175 72.377 36.388 72.539 36.594 72.708 C 36.801 72.878 37.002 73.054 37.197 73.236 C 37.392 73.419 37.581 73.608 37.764 73.803 C 37.946 73.998 38.122 74.199 38.292 74.406 C 38.461 74.612 38.623 74.825 38.779 75.043 C 38.934 75.261 39.082 75.485 39.223 75.713 C 39.364 75.942 39.498 76.175 39.623 76.414 C 39.749 76.652 39.867 76.895 39.976 77.143 C 40.086 77.39 40.187 77.642 40.281 77.898 C 40.374 78.154 40.458 78.414 40.534 78.678 C 40.61 78.941 40.677 79.209 40.735 79.48 C 40.793 79.751 40.842 80.025 40.881 80.302 C 40.92 80.58 40.95 80.86 40.97 81.143 C 40.99 81.426 41 81.712 41 82 C 41 88.627 35.627 94 29 94 Z"
+							fill="#ff49db"
+							fill-rule="evenodd"
+						/>
+						<circle cx="29" cy="82" r="4" fill="red"/>
+					</svg>
+				</span>
+			</h1>
 
 		</div>
 
 		<script type="module">
+			import { Hand } from './js/hand.js'
 			import { NoiseLayer } from './js/noiseLayer.js'
 			import { ThreeComposition } from './js/threeComposition.js'
 
 			const presentation = document.getElementsByClassName('presentation')[0];
 			const content = document.getElementsByClassName('content')[0];
 
+			var hand = new Hand();
+
 			var noiseLayer = new NoiseLayer();
 
-			var threeComposition = new ThreeComposition(presentation);
+			// var threeComposition = new ThreeComposition(presentation);
 
 			threeComposition.addEventListener('comp-loaded', () => {
 				console.log('loaded');

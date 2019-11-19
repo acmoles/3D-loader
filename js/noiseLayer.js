@@ -29,6 +29,8 @@ export class NoiseLayer {
     style.type = 'text/css';
     style.appendChild(document.createTextNode(css));
 
+    // TODO could have animated smaller 64x64 noise tile and update css in the head for this class - performance?
+
   }
 
 }
