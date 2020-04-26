@@ -151,9 +151,9 @@ export class Abstract extends EventTarget {
 
     // this.material = new THREE.MeshLambertMaterial({ color: this.colors.base, wireframe: false });
     this.sphere = new THREE.Mesh(this.geometry, this.material);
-    this.sphere.position.set( 0, 0, 0 );
+    this.sphere.position.set( 8, 8, 0 );
     this.sphere.rotation.x = Math.PI / 3
-    this.sphere.rotation.y = Math.PI / 12
+    this.sphere.rotation.y = Math.PI / 8
     this.sphere.rotation.z = Math.PI / 6
     this.sphere.scale.x = 1.5;
     // this.sphere.modifier = Math.random();
