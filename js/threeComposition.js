@@ -3,14 +3,14 @@ import { OrbitControls } from '../node_modules/three/examples/jsm/controls/Orbit
 import Stats from '../node_modules/three/examples/jsm/libs/stats.module.js';
 import { EventTarget } from '../node_modules/event-target-shim/dist/event-target-shim.mjs';
 
-import { EffectComposer } from '../node_modules/three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from '../node_modules/three/examples/jsm/postprocessing/RenderPass.js';
-import { ShaderPass } from '../node_modules/three/examples/jsm/postprocessing/ShaderPass.js';
-import { ClearPass } from '../node_modules/three/examples/jsm/postprocessing/ClearPass.js';
-import { MaskPass, ClearMaskPass } from '../node_modules/three/examples/jsm/postprocessing/MaskPass.js';
-import { CopyShader } from '../node_modules/three/examples/jsm/shaders/CopyShader.js';
-import { FXAAShader } from '../node_modules/three/examples/jsm/shaders/FXAAShader.js';
-import { NoiseShader } from './noiseShader.js'
+// import { EffectComposer } from '../node_modules/three/examples/jsm/postprocessing/EffectComposer.js';
+// import { RenderPass } from '../node_modules/three/examples/jsm/postprocessing/RenderPass.js';
+// import { ShaderPass } from '../node_modules/three/examples/jsm/postprocessing/ShaderPass.js';
+// import { ClearPass } from '../node_modules/three/examples/jsm/postprocessing/ClearPass.js';
+// import { MaskPass, ClearMaskPass } from '../node_modules/three/examples/jsm/postprocessing/MaskPass.js';
+// import { CopyShader } from '../node_modules/three/examples/jsm/shaders/CopyShader.js';
+// import { FXAAShader } from '../node_modules/three/examples/jsm/shaders/FXAAShader.js';
+// import { NoiseShader } from './noiseShader.js'
 
 import { LoadedContent } from './LoadedContent.js'
 import { Grid } from './grid.js'
@@ -20,7 +20,7 @@ export class ThreeComposition extends EventTarget {
 
   constructor(domParent) {
     super();
-    this.renderer = new THREE.WebGLRenderer( { alpha: true } );
+    this.renderer = new THREE.WebGLRenderer( { alpha: true, antialias: true } );
     // Custom framerate for noise
     this.now; this.delta; this.fixedDelta; this.then = Date.now();
     this.interval = 1000/10;
@@ -37,11 +37,20 @@ export class ThreeComposition extends EventTarget {
     this.clock = new THREE.Clock();
     this.stats = new Stats();
 
-    this.content = new LoadedContent(this.worldScene);
+    this.configRenderer();
+    this.configScene();
+
+    const res = this.renderer.getSize();
+
+    this.content = new LoadedContent(
+      this.worldScene,
+      res
+    );
 
     this.grid = new Grid(
       this.worldScene,
-      this.content
+      this.content,
+      res
     );
 
     this.interactions = new Interactions(
@@ -51,8 +60,6 @@ export class ThreeComposition extends EventTarget {
       this.grid.gridElements
     );
 
-    this.configRenderer();
-    this.configScene();
   }
 
   init() {
@@ -66,6 +73,7 @@ export class ThreeComposition extends EventTarget {
   postLoad() {
     this.grid.init();
     this.interactions.init();
+
     this.dispatchEvent(new Event('comp-loaded'));
 
     this.interactions.addEventListener('click', (e) => {
@@ -94,11 +102,12 @@ export class ThreeComposition extends EventTarget {
       }
     }
 
-    this.customPass.uniforms['amount'].value = 0.1;
-    this.composer.render();
+    // this.customPass.uniforms['amount'].value = 0.1;
+    // this.composer.render();
+    this.renderer.render( this.worldScene, this.camera );
 
     if (this.fixedDelta > this.interval) {
-      this.customPass.uniforms['seed'].value += this.interval;
+      // this.customPass.uniforms['seed'].value += this.interval;
       this.then = this.now - (this.fixedDelta % this.interval);
     }
 
@@ -112,20 +121,8 @@ export class ThreeComposition extends EventTarget {
     this.renderer.setClearColor( 0x273444, 0 );
     this.renderer.setPixelRatio( window.devicePixelRatio );
     this.renderer.setSize( width, height );
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.gammaFactor = 2;
-    this.renderer.gammaOutput = true;
-
-    this.composer = new EffectComposer( this.renderer, this.renderTarget);
-
-    let renderPass = new RenderPass( this.worldScene, this.camera );
-    this.composer.addPass( renderPass );
-
-    this.customPass = new ShaderPass( NoiseShader );
-    this.composer.addPass( this.customPass );
-
-    this.fxaaPass = new ShaderPass( FXAAShader );
-    this.fxaaPass.writeToScreen = true;
-    this.composer.addPass( this.fxaaPass );
 
     this.container.appendChild( this.renderer.domElement );
     this.container.appendChild( this.stats.dom );
@@ -154,16 +151,14 @@ export class ThreeComposition extends EventTarget {
     window.addEventListener( 'resize', () => { this.onWindowResize(); }, false );
   }
 
+
   onWindowResize() {
     let width = this.container.offsetWidth;
     let height = this.container.offsetHeight;
 
     this.renderer.setSize( width, height );
-    this.composer.setSize( width, height );
 
     var pixelRatio = this.renderer.getPixelRatio();
-		this.fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( width * pixelRatio );
-		this.fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( height * pixelRatio );
 
     this.camera.left = width / - this.camFactor;
     this.camera.right = width / this.camFactor;

@@ -1,9 +1,11 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
 import anime from '../node_modules/animejs/lib/anime.es.js';
 
+import { SharedShader } from './sharedMaterialShader.js'
+
 export class Grid {
 
-  constructor(worldScene, loadedContent) {
+  constructor(worldScene, loadedContent, res) {
     this.GRID = [6, 6];
     this.col = this.GRID[0];
     this.row  = this.GRID[1];
@@ -19,6 +21,10 @@ export class Grid {
 
     this.scrollAnimation;
     this.clickAnimation;
+
+    this.gridShader;
+    this.gridMaterial;
+    this.res = res;
 
     this.worldScene = worldScene;
     this.loadedContent = loadedContent;
@@ -41,6 +47,29 @@ export class Grid {
       // color: 0x0B1421
       color: 0x060B13
     });
+
+    this.gridMaterial.onBeforeCompile = ( shader ) => {
+      shader.uniforms.time = { value: 0 };
+      shader.uniforms.resolution = { value: this.res };
+
+      shader.vertexShader = 'varying float vY;\n' + shader.vertexShader;
+
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <fog_vertex>', SharedShader.vertexShaderGrid
+      );
+
+
+      shader.fragmentShader = 'uniform float time;\nvarying float vY;\n' + SharedShader.randomFunction + SharedShader.blendFunction + shader.fragmentShader;
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <specularmap_fragment>', SharedShader.fragmentShaderOutputGrid
+      );
+
+      this.gridShader = shader;
+
+    }
+
+
 
     for (var c=0; c<this.col; c++) {
         for (var r=0; r<this.row; r++) {

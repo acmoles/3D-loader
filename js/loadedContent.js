@@ -3,12 +3,19 @@ import { GLTFLoader } from '../node_modules/three/examples/jsm/loaders/GLTFLoade
 import { EventTarget } from '../node_modules/event-target-shim/dist/event-target-shim.mjs';
 import anime from '../node_modules/animejs/lib/anime.es.js';
 
+import { SharedShader } from './sharedMaterialShader.js'
+
 export class LoadedContent extends EventTarget {
 
-  constructor(worldScene) {
+  constructor(worldScene, res) {
     super();
     this.worldScene = worldScene;
-    this.gltfScene = null;
+    this.gltfScene;
+
+    this.enhancedMaterial = false;
+    this.shaderMaterial;
+    this.res = res;
+
     this.TRANSITION = 1;
     this.animations = [];
     this.interactables = [];
@@ -80,6 +87,7 @@ export class LoadedContent extends EventTarget {
       this.gltfScene.traverse( ( child ) => {
 
         if ( child.isMesh ) {
+          this.enhanceMaterial(child.material);
 
           if (child.name === 'Whiteboard') {
             this.equipMesh( this.getModelByName('Whiteboard'), child );
@@ -129,6 +137,28 @@ export class LoadedContent extends EventTarget {
       meshobject.mesh.animations = this.animations; // Set to stored extracted animations
       let mixer = this.startAnimation( meshobject.mesh, meshobject.actions, meshobject.startAction );
       meshobject.mixer = mixer;
+    }
+  }
+
+  enhanceMaterial(material) {
+    if (!this.enhancedMaterial) {
+
+      this.enhancedMaterial = true;
+      material.onBeforeCompile = ( shader ) => {
+        shader.uniforms.time = { value: 0 };
+        shader.uniforms.resolution = { value: this.res };
+        shader.fragmentShader = 'uniform float time;\nuniform vec2 resolution;\n' + SharedShader.randomFunction + SharedShader.blendFunction + shader.fragmentShader;
+
+        shader.fragmentShader = shader.fragmentShader.replace(
+          '#include <specularmap_fragment>', SharedShader.fragmentShaderOutput
+        );
+
+
+
+        this.shaderMaterial = shader;
+      }
+
+
     }
   }
 
