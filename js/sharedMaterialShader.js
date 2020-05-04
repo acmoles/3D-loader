@@ -57,7 +57,7 @@ diffuseColor.rgb = blendOverlay( diffuseColor.rgb, vec3( n ) );
 ,
 
 fragmentShaderOutputGrid: `
-float val = smoothstep( 0.9, 0.1, vY );
+float val = smoothstep( .95, .05, vY );
 vec3 col = mix( vec3( 1. ), vec3( 0.16 ), val );
 
 // diffuseColor.rgb = 2.*col;
