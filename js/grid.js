@@ -5,7 +5,7 @@ import { SharedShader } from './sharedMaterialShader.js'
 
 export class Grid {
 
-  constructor(worldScene, loadedContent, res) {
+  constructor(worldScene, loadedContent) {
     this.GRID = [6, 6];
     this.col = this.GRID[0];
     this.row  = this.GRID[1];
@@ -24,7 +24,6 @@ export class Grid {
 
     this.gridShader;
     this.gridMaterial;
-    this.res = res;
 
     this.worldScene = worldScene;
     this.loadedContent = loadedContent;
@@ -50,7 +49,6 @@ export class Grid {
 
     this.gridMaterial.onBeforeCompile = ( shader ) => {
       shader.uniforms.time = { value: 0 };
-      shader.uniforms.resolution = { value: this.res };
 
       shader.vertexShader = 'varying float vY;\n' + shader.vertexShader;
 

@@ -7,14 +7,13 @@ import { SharedShader } from './sharedMaterialShader.js'
 
 export class LoadedContent extends EventTarget {
 
-  constructor(worldScene, res) {
+  constructor(worldScene) {
     super();
     this.worldScene = worldScene;
     this.gltfScene;
 
     this.enhancedMaterial = false;
     this.shaderMaterial;
-    this.res = res;
 
     this.TRANSITION = 1;
     this.animations = [];
@@ -146,8 +145,13 @@ export class LoadedContent extends EventTarget {
       this.enhancedMaterial = true;
       material.onBeforeCompile = ( shader ) => {
         shader.uniforms.time = { value: 0 };
-        shader.uniforms.resolution = { value: this.res };
-        shader.fragmentShader = 'uniform float time;\nuniform vec2 resolution;\n' + SharedShader.randomFunction + SharedShader.blendFunction + shader.fragmentShader;
+        shader.vertexShader = 'varying float vY;\n' + shader.vertexShader;
+
+        shader.vertexShader = shader.vertexShader.replace(
+          '#include <fog_vertex>', SharedShader.vertexShader
+        );
+
+        shader.fragmentShader = 'uniform float time;\nvarying float vY;\n' + SharedShader.randomFunction + SharedShader.blendFunction + shader.fragmentShader;
 
         shader.fragmentShader = shader.fragmentShader.replace(
           '#include <specularmap_fragment>', SharedShader.fragmentShaderOutput

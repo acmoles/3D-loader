@@ -40,18 +40,13 @@ export class ThreeComposition extends EventTarget {
     this.configRenderer();
     this.configScene();
 
-    var res = new THREE.Vector2();
-    this.renderer.getSize( res );
-
     this.content = new LoadedContent(
       this.worldScene,
-      res
     );
 
     this.grid = new Grid(
       this.worldScene,
       this.content,
-      res
     );
 
     this.interactions = new Interactions(

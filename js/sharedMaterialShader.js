@@ -26,6 +26,15 @@ vY = position.y;
 
 `,
 
+vertexShader:`
+
+// vec3 n_position = normalize(position.xyz);
+// vY = n_position.y - .5;
+vec4 v = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+vY = v.y / v.z;
+
+`,
+
 randomFunction: `
 float random(vec3 scale,float seed){return fract(sin(dot(gl_FragCoord.xyz+seed,scale))*43758.5453+seed);}
 `,
@@ -41,18 +50,16 @@ vec3 blendOverlay(vec3 base, vec3 blend) {
 `,
 
 fragmentShaderOutput: `
-vec2 st = gl_FragCoord.xy/resolution.xy;
-float pct = 0.0;
-pct = 2.*distance(st,vec2(0.8));
-diffuseColor.rgb = blendOverlay( diffuseColor.rgb, vec3(1.0 - pct) );
+float val = smoothstep( .2, .8, .5 - vY );
+vec3 col = mix( vec3( 1. ), vec3( .0 ), 1. - val );
+
+// diffuseColor.rgb = col;
+diffuseColor.rgb = blendOverlay( diffuseColor.rgb, col );
 
 
-float n = ( 1.42 - .64 * random( vec3( 1. ), length( gl_FragCoord ) ) );
+float n = ( 1. - .64 * random( vec3( 1. ), length( gl_FragCoord ) ) );
 
 diffuseColor.rgb = blendOverlay( diffuseColor.rgb, vec3( n ) );
-
-
-// diffuseColor.rgb = vec3(1.0 - pct);
 `
 ,
 
@@ -62,7 +69,6 @@ vec3 col = mix( vec3( 1. ), vec3( 0.16 ), val );
 
 // diffuseColor.rgb = 2.*col;
 diffuseColor.rgb = blendOverlay( diffuseColor.rgb, col );
-
 
 
 float n = ( 1.42 - .64 * random( vec3( 1. ), length( gl_FragCoord ) ) );
