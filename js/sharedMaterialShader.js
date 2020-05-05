@@ -50,14 +50,14 @@ vec3 blendOverlay(vec3 base, vec3 blend) {
 `,
 
 fragmentShaderOutput: `
-float val = smoothstep( .2, .8, .5 - vY );
-vec3 col = mix( vec3( 1. ), vec3( .0 ), 1. - val );
+float val = smoothstep( .2, .8, .4 - vY );
+vec3 col = mix( vec3( .5 ), vec3( .0 ), 1. - val );
 
 // diffuseColor.rgb = col;
 diffuseColor.rgb = blendOverlay( diffuseColor.rgb, col );
 
 
-float n = ( 1. - .64 * random( vec3( 1. ), length( gl_FragCoord ) ) );
+float n = ( 1. - .56 * random( vec3( 1. ), length( gl_FragCoord ) ) );
 
 diffuseColor.rgb = blendOverlay( diffuseColor.rgb, vec3( n ) );
 `
