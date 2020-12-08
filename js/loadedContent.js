@@ -11,15 +11,13 @@ export class LoadedContent extends EventTarget {
     super();
     this.worldScene = worldScene;
     this.gltfScene;
-
     this.enhancedMaterial = false;
     this.shaderMaterial;
-
     this.TRANSITION = 1;
     this.animations = [];
     this.interactables = [];
 
-    this.LOADPATH = '../import-test-scene/characters-export4-test-uncompressed.glb';
+    this.LOADPATH = '../import-test-scene/characters-3.glb';
 
     this.models = [
       { name: 'Ant',
@@ -157,11 +155,8 @@ export class LoadedContent extends EventTarget {
           '#include <specularmap_fragment>', SharedShader.fragmentShaderOutput
         );
 
-
-
         this.shaderMaterial = shader;
       }
-
 
     }
   }

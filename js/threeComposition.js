@@ -3,15 +3,6 @@ import { OrbitControls } from '../node_modules/three/examples/jsm/controls/Orbit
 import Stats from '../node_modules/three/examples/jsm/libs/stats.module.js';
 import { EventTarget } from '../node_modules/event-target-shim/dist/event-target-shim.mjs';
 
-// import { EffectComposer } from '../node_modules/three/examples/jsm/postprocessing/EffectComposer.js';
-// import { RenderPass } from '../node_modules/three/examples/jsm/postprocessing/RenderPass.js';
-// import { ShaderPass } from '../node_modules/three/examples/jsm/postprocessing/ShaderPass.js';
-// import { ClearPass } from '../node_modules/three/examples/jsm/postprocessing/ClearPass.js';
-// import { MaskPass, ClearMaskPass } from '../node_modules/three/examples/jsm/postprocessing/MaskPass.js';
-// import { CopyShader } from '../node_modules/three/examples/jsm/shaders/CopyShader.js';
-// import { FXAAShader } from '../node_modules/three/examples/jsm/shaders/FXAAShader.js';
-// import { NoiseShader } from './noiseShader.js'
-
 import { LoadedContent } from './LoadedContent.js'
 import { Grid } from './grid.js'
 import { Interactions } from './interactions.js'
@@ -88,8 +79,6 @@ export class ThreeComposition extends EventTarget {
 
   animate() {
     requestAnimationFrame( () => { this.animate(); } );
-    this.now = Date.now();
-    this.fixedDelta = this.now - this.then;
     this.delta = this.clock.getDelta();
 
     for ( var i = 0; i < this.content.models.length; ++ i ) {
@@ -98,14 +87,7 @@ export class ThreeComposition extends EventTarget {
       }
     }
 
-    // this.customPass.uniforms['amount'].value = 0.1;
-    // this.composer.render();
     this.renderer.render( this.worldScene, this.camera );
-
-    if (this.fixedDelta > this.interval) {
-      // this.customPass.uniforms['seed'].value += this.interval;
-      this.then = this.now - (this.fixedDelta % this.interval);
-    }
 
     this.stats.update();
   }
@@ -153,8 +135,6 @@ export class ThreeComposition extends EventTarget {
     let height = this.container.offsetHeight;
 
     this.renderer.setSize( width, height );
-
-    var pixelRatio = this.renderer.getPixelRatio();
 
     this.camera.left = width / - this.camFactor;
     this.camera.right = width / this.camFactor;

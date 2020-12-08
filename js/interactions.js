@@ -56,7 +56,9 @@ export class Interactions extends EventTarget {
   updateMouse( event ) {
     event.preventDefault();
     this.mouse.x = ( event.clientX / this.container.offsetWidth ) * 2 - 1;
+    console.log('mouse x', this.mouse.x);
     this.mouse.y = - ( event.clientY / this.container.offsetHeight ) * 2 + 1;
+    console.log('mouse y', this.mouse.y);
     if (this.hasEvents) {
       this.checkForIntersect();
     }
